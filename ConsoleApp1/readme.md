@@ -2,10 +2,19 @@
 
 1. Установил `dotnet-dump` и `WinDbg`. Запустил приложение `ConsoleApp1.exe`. Нашел его PID с помощью `dotnet-dump ps`. Создал дамп [dump.dmp](./dump.dmp) с помощью `dotnet-dump collect -p 23396`
 
-2. Открыл дамп в WinDbg. С помощью команды `~e* !clrstack` увидел в стэке вызовов двух потоков (4 и 5) вход в критическую секцию кода `System.Threading.Monitor.Enter`
+2. Открыл дамп в WinDbg. С помощью команды `~e* !clrstack` увидел в стэке вызовов всех потоков:
+  - ожидания завершения потока из главного потока приложения `System.Threading.Thread.Join`
+  - вход двух других потоков (4 и 5) в критическую секцию кода `System.Threading.Monitor.Enter`
 
 ```
 0:000> ~*e !clrstack
+OS Thread Id: 0xc6d0 (0)
+        Child SP               IP Call Site
+000000958BD7EB18 00007ffb87100ed4 [InlinedCallFrame: 000000958bd7eb18] 
+000000958BD7EB18 00007ffb1d8a528c [InlinedCallFrame: 000000958bd7eb18] 
+000000958BD7EAE0 00007ffb1d8a528c System.Threading.Thread.Join(Int32) [/_/src/runtime/src/coreclr/System.Private.CoreLib/src/System/Threading/Thread.CoreCLR.cs @ 420]
+000000958BD7EBC0 00007ffb1d8a618f System.Threading.Thread.Join() [/_/src/runtime/src/libraries/System.Private.CoreLib/src/System/Threading/Thread.cs @ 567]
+000000958BD7EBF0 00007ffabe9648c4 Program.$(System.String[]) [C:\Code\github\c-sharp-expert-otus-17-win-dbg\ConsoleApp1\Program.cs @ 12]
 ...
 OS Thread Id: 0x2f70 (4)
         Child SP               IP Call Site
